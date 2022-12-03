@@ -87,3 +87,12 @@
 
 *.runs/
 *.cache/
+
+# design check point (is created after each step of the design flow such as synthesis)
+*.dcp
+# VCS simulator  symbol_library
+*.sdb
+# simulation output folder
+*.sim/
+
+git_exclude/
