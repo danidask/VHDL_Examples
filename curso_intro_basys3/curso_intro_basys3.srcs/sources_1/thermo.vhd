@@ -26,7 +26,7 @@ entity THERMO is
       end if;
     end process;
 
-    process (DISPLAY_SELECT, CURRENT_TEMP, DESIRED_TEMP, COLD, HEAT)
+    process (CURRENT_TEMP, DESIRED_TEMP, COLD, HEAT)
     begin
       AC_ON <= '0';  -- default state if no conditions are met
       FURNACE_ON <= '0';
