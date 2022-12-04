@@ -30,6 +30,10 @@ signal TEMP_DISPLAY : bit_vector( 6 downto 0);
 signal AC_ON, FURNACE_ON : bit;
 
 begin
+
+-- generate clock (concurrent statement, outside process)
+CLK <= not CLK after 6 ns;
+
 -- component under test, connect internal with external signals (same names)
 UUT: THERMO port map(  
     CLK => CLK,
@@ -47,21 +51,23 @@ UUT: THERMO port map(
 process
     -- without selsivility list, it always enters and creates an infinite loop
 begin
-    CLK <= '0';
     RESET <= '0';
     CURRENT_TEMP <= "0001111";
     DESIRED_TEMP <= "1111111";
     DISPLAY_SELECT <= '0';
     COOL <= '0';
     HEAT <= '0';
-    wait for 10 ns;
+    wait for 50 ns;
     DISPLAY_SELECT <= '1';
     HEAT <= '1';
-    wait for 10 ns;
+    wait for 50 ns;
     DESIRED_TEMP <= "0000000";
-    wait for 10 ns;
+    wait for 50 ns;
     HEAT <= '0';
     COOL <= '1';
+    wait for 50 ns;
+    RESET <= '1';
+    wait for 50 ns;
     wait;
 end process;
 end TEST;

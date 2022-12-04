@@ -32,6 +32,26 @@ entity THERMO is
 
   -- All processes sensitive only to CLK and RESET, and will be trigguered in each rising edge or when assert RESET
   begin
+    -- Register all inputs into flip-flops
+    process (CLK, RESET)
+    begin
+      if RESET = '1' then
+        -- default values
+        CURRENT_TEMP_REG <= "0000000";
+        DESIRED_TEMP_REG <= "0000000";
+        DISPLAY_SELECT_REG <= '0';
+        COOL_REG <= '0';
+        HEAT_REG <= '0';
+      elsif CLK'event and CLK = '1' then
+        CURRENT_TEMP_REG <= CURRENT_TEMP;
+        DESIRED_TEMP_REG <= DESIRED_TEMP;
+        DISPLAY_SELECT_REG <= DISPLAY_SELECT;
+        COOL_REG <= COOL;
+        HEAT_REG <= HEAT;
+      end if;      
+    end process;
+
+    -- update the outputs with the registered values
     process (CLK, RESET)
     begin
       if RESET = '1' then
@@ -39,25 +59,28 @@ entity THERMO is
         FURNACE_ON <= '0';
         TEMP_DISPLAY <= "0000000";
       elsif CLK'event and CLK = '1' then
-        -- store all the inputs in registers (flip-flops) 
-        CURRENT_TEMP_REG <= CURRENT_TEMP;
-        DESIRED_TEMP_REG <= DESIRED_TEMP;
-        DISPLAY_SELECT_REG <= DISPLAY_SELECT;
-        COOL_REG <= COOL;
-        HEAT_REG <= HEAT;
-        -- update the outputs with the registered values
         AC_ON <= AC_ON_REG;
         FURNACE_ON <= FURNACE_ON_REG;
         TEMP_DISPLAY <= TEMP_DISPLAY_REG;
-
-        -- update the display (trough registers)
+      end if;      
+    end process;
+    
+    -- update the display register
+    process (CLK)
+    begin
+      if CLK'event and CLK = '1' then
         if DISPLAY_SELECT_REG = '1' then
           TEMP_DISPLAY_REG <= CURRENT_TEMP_REG;
         else
             TEMP_DISPLAY_REG <= DESIRED_TEMP_REG;
-        end if;
-
-        -- furnace/AC logic (trough registers)
+        end if;      
+      end if;      
+    end process;
+    
+    -- furnace/AC logic (trough registers)
+    process (CLK)
+    begin
+      if CLK'event and CLK = '1' then
         if HEAT_REG = '1' and CURRENT_TEMP_REG < DESIRED_TEMP_REG then
           FURNACE_ON_REG <= '1';
         else
@@ -69,7 +92,7 @@ entity THERMO is
           AC_ON_REG <= '0';          
         end if;        
       end if;      
-    end process;
+    end process;    
   
   end RTL;
   
