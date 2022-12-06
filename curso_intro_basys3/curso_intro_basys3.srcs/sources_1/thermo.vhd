@@ -1,98 +1,170 @@
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_1164.all;
 
--- the goal is to register all inputs an outputs (see pic) and update signals at clock edge
--- 1) Start with a copy of the previous lab.
--- 2) Add registers to the inputs.
--- 3) Create internal signals for the registered input values.
--- 4) Register the outputs.  You can either put the combinatorial logic in a clocked process, or keep the combinatorial process for the logic and add a clocked process for registering the outputs.
--- 5) Generate a clock in the test bench.    If needed, generate a reset in the test bench.
--- 6) Simulate your design and verify the flip-flops are behaving correctly.
-
-
+-- Lab4
+-- We will add a state machine to our thermostat design to control when the heat and A/C are on, and when the fan is used for each mode.
+-- change bit and bit_vector to std_logic and std_logic_vector
+-- outputs should be a function of state or next_state
 entity THERMO is
-    port (
-      CLK:              in bit;
-      RESET:            in bit;
-      CURRENT_TEMP :    in bit_vector(6 downto 0);
-      DESIRED_TEMP :    in bit_vector(6 downto 0);
-      DISPLAY_SELECT :  in bit;
-      COOL :            in bit;
-      HEAT :            in bit;
-      AC_ON :           out bit;
-      FURNACE_ON :      out bit;
-      TEMP_DISPLAY :    out bit_vector(6 downto 0)
-    );
-  end THERMO;
-  
-  architecture RTL of THERMO is
+  port (
+    CLK : in std_logic;
+    NRESET : in std_logic;
+    CURRENT_TEMP : in std_logic_vector(6 downto 0);
+    DESIRED_TEMP : in std_logic_vector(6 downto 0);
+    DISPLAY_SELECT : in std_logic;
+    COOL : in std_logic;
+    HEAT : in std_logic;
+    FURNACE_HOT : in std_logic;
+    AC_READY : in std_logic;
+    AC_ON : out std_logic;
+    FURNACE_ON : out std_logic;
+    FAN_ON : out std_logic;
+    TEMP_DISPLAY : out std_logic_vector(6 downto 0)
+  );
+end THERMO;
+
+architecture RTL of THERMO is
   -- signals for internal registers (flip-flops)
-  signal CURRENT_TEMP_REG, DESIRED_TEMP_REG, TEMP_DISPLAY_REG: bit_vector(6 downto 0);
-  signal DISPLAY_SELECT_REG, COOL_REG, HEAT_REG, AC_ON_REG, FURNACE_ON_REG: bit;
+  signal CURRENT_TEMP_REG, DESIRED_TEMP_REG, TEMP_DISPLAY_REG : std_logic_vector(6 downto 0) := "0000000";
+  signal DISPLAY_SELECT_REG, COOL_REG, HEAT_REG, AC_ON_REG, FURNACE_ON_REG, FAN_ON_REG, FURNACE_HOT_REG, AC_READY_REG : std_logic := '0';
 
-  -- All processes sensitive only to CLK and RESET, and will be trigguered in each rising edge or when assert RESET
+  type FSM_STATES is (IDLE_STATE, HEAT_ON_STATE, FURNACE_NOW_HOT_STATE, FURNACE_COOL_STATE, COOL_ON_STATE, AC_NOW_READY_STATE, AC_DONE_STATE);
+  signal STATE, NEXT_STATE : FSM_STATES := IDLE_STATE;
+
+  -- All processes sensitive only to CLK and NRESET, and will be trigguered in each rising edge or when reset is asserted
+begin
+  -- Register all inputs into flip-flops
+  process (CLK, NRESET)
   begin
-    -- Register all inputs into flip-flops
-    process (CLK, RESET)
-    begin
-      if RESET = '1' then
-        -- default values
-        CURRENT_TEMP_REG <= "0000000";
-        DESIRED_TEMP_REG <= "0000000";
-        DISPLAY_SELECT_REG <= '0';
-        COOL_REG <= '0';
-        HEAT_REG <= '0';
-      elsif CLK'event and CLK = '1' then
-        CURRENT_TEMP_REG <= CURRENT_TEMP;
-        DESIRED_TEMP_REG <= DESIRED_TEMP;
-        DISPLAY_SELECT_REG <= DISPLAY_SELECT;
-        COOL_REG <= COOL;
-        HEAT_REG <= HEAT;
-      end if;      
-    end process;
+    if NRESET = '0' then
+      -- default values
+      CURRENT_TEMP_REG <= "0000000";
+      DESIRED_TEMP_REG <= "0000000";
+      DISPLAY_SELECT_REG <= '0';
+      COOL_REG <= '0';
+      HEAT_REG <= '0';
+      FURNACE_HOT_REG <= '0';
+      AC_READY_REG <= '0';
+    elsif CLK'event and CLK = '1' then
+      CURRENT_TEMP_REG <= CURRENT_TEMP;
+      DESIRED_TEMP_REG <= DESIRED_TEMP;
+      DISPLAY_SELECT_REG <= DISPLAY_SELECT;
+      COOL_REG <= COOL;
+      HEAT_REG <= HEAT;
+      FURNACE_HOT_REG <= FURNACE_HOT;
+      AC_READY_REG <= AC_READY;
+    end if;
+  end process;
 
-    -- update the outputs with the registered values
-    process (CLK, RESET)
-    begin
-      if RESET = '1' then
-        AC_ON <= '0';
-        FURNACE_ON <= '0';
-        TEMP_DISPLAY <= "0000000";
-      elsif CLK'event and CLK = '1' then
-        AC_ON <= AC_ON_REG;
-        FURNACE_ON <= FURNACE_ON_REG;
-        TEMP_DISPLAY <= TEMP_DISPLAY_REG;
-      end if;      
-    end process;
-    
-    -- update the display register
-    process (CLK)
-    begin
-      if CLK'event and CLK = '1' then
-        if DISPLAY_SELECT_REG = '1' then
-          TEMP_DISPLAY_REG <= CURRENT_TEMP_REG;
-        else
-            TEMP_DISPLAY_REG <= DESIRED_TEMP_REG;
-        end if;      
-      end if;      
-    end process;
-    
-    -- furnace/AC logic (trough registers)
-    process (CLK)
-    begin
-      if CLK'event and CLK = '1' then
+  -- update the outputs with the registered values
+  process (CLK, NRESET)
+  begin
+    if NRESET = '0' then
+      AC_ON <= '0';
+      FURNACE_ON <= '0';
+      FAN_ON <= '0';
+      TEMP_DISPLAY <= "0000000";
+    elsif CLK'event and CLK = '1' then
+      AC_ON <= AC_ON_REG;
+      FURNACE_ON <= FURNACE_ON_REG;
+      TEMP_DISPLAY <= TEMP_DISPLAY_REG;
+      FAN_ON <= FAN_ON_REG;
+    end if;
+  end process;
+
+  -- update the display register
+  process (CLK)
+  begin
+    if CLK'event and CLK = '1' then
+      if DISPLAY_SELECT_REG = '1' then
+        TEMP_DISPLAY_REG <= CURRENT_TEMP_REG;
+      else
+        TEMP_DISPLAY_REG <= DESIRED_TEMP_REG;
+      end if;
+    end if;
+  end process;
+
+  -- State machine
+  process (STATE, CURRENT_TEMP_REG, DESIRED_TEMP_REG, COOL_REG, HEAT_REG, FURNACE_HOT_REG, AC_READY_REG)
+  begin
+    case STATE is
+      when IDLE_STATE =>
+        FURNACE_ON_REG <= '0';
+        AC_ON_REG <= '0';
+        FAN_ON_REG <= '0';
         if HEAT_REG = '1' and CURRENT_TEMP_REG < DESIRED_TEMP_REG then
-          FURNACE_ON_REG <= '1';
+          NEXT_STATE <= HEAT_ON_STATE;
+        elsif COOL_REG = '1' and CURRENT_TEMP_REG > DESIRED_TEMP_REG then
+          NEXT_STATE <= COOL_ON_STATE;
         else
-          FURNACE_ON_REG <= '0';
-        end if;        
-        if COOL_REG = '1' and CURRENT_TEMP_REG > DESIRED_TEMP_REG then
-          AC_ON_REG <= '1';
+          NEXT_STATE <= IDLE_STATE;
+        end if;
+      when HEAT_ON_STATE =>
+        FURNACE_ON_REG <= '1';
+        AC_ON_REG <= '0';
+        FAN_ON_REG <= '0';
+        if FURNACE_HOT_REG = '1' then
+          NEXT_STATE <= FURNACE_NOW_HOT_STATE;
         else
-          AC_ON_REG <= '0';          
+          NEXT_STATE <= HEAT_ON_STATE;
+        end if;
+      when FURNACE_NOW_HOT_STATE =>
+        FURNACE_ON_REG <= '1';
+        AC_ON_REG <= '0';
+        FAN_ON_REG <= '1';
+        if not (HEAT_REG = '1' and CURRENT_TEMP_REG < DESIRED_TEMP_REG) then
+          NEXT_STATE <= FURNACE_COOL_STATE;
+        else
+          NEXT_STATE <= FURNACE_NOW_HOT_STATE;
+        end if;
+      when FURNACE_COOL_STATE =>
+        FURNACE_ON_REG <= '0';
+        AC_ON_REG <= '0';
+        FAN_ON_REG <= '1';
+        if FURNACE_HOT_REG = '0' then
+          NEXT_STATE <= IDLE_STATE;
+        else
+          NEXT_STATE <= FURNACE_COOL_STATE;
+        end if;
+      when COOL_ON_STATE =>
+        FURNACE_ON_REG <= '0';
+        AC_ON_REG <= '1';
+        FAN_ON_REG <= '0';
+        if AC_READY_REG = '1' then
+          NEXT_STATE <= AC_NOW_READY_STATE;
+        else
+          NEXT_STATE <= COOL_ON_STATE;
+        end if;
+      when AC_NOW_READY_STATE =>
+        FURNACE_ON_REG <= '0';
+        AC_ON_REG <= '1';
+        FAN_ON_REG <= '1';
+        if not (COOL_REG = '1' and CURRENT_TEMP_REG > DESIRED_TEMP_REG) then
+          NEXT_STATE <= FURNACE_COOL_STATE;
+        else
+          NEXT_STATE <= AC_NOW_READY_STATE;
+        end if;
+      when AC_DONE_STATE =>
+        FURNACE_ON_REG <= '0';
+        AC_ON_REG <= '0';
+        FAN_ON_REG <= '1';
+        if AC_READY_REG = '0' then
+          NEXT_STATE <= IDLE_STATE;
+        else
+          NEXT_STATE <= AC_DONE_STATE;
         end if;        
-      end if;      
-    end process;    
-  
-  end RTL;
-  
+      when others =>
+        NEXT_STATE <= IDLE_STATE;
+    end case;
+  end process;
+
+  process (CLK, NRESET)
+  begin
+    if NRESET = '0' then
+      STATE <= IDLE_STATE;
+    elsif CLK'event and CLK = '1' then
+      STATE <= NEXT_STATE;
+    end if;
+  end process;
+
+end RTL;

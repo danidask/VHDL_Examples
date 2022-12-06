@@ -1,4 +1,4 @@
--- el nombre empieza con t_ para indicar que es un test
+-- test filenames start with t_ 
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -10,64 +10,81 @@ end T_THERMO;
 -- copy/paste from entity, changing "entity" for "component"
 architecture TEST of T_THERMO is
 component THERMO
-port (
-    CLK:              in bit; 
-    RESET:            in bit; 
-    CURRENT_TEMP :    in bit_vector(6 downto 0);
-    DESIRED_TEMP :    in bit_vector(6 downto 0);
-    DISPLAY_SELECT :  in bit;
-    COOL :            in bit;
-    HEAT :            in bit;
-    AC_ON :           out bit;
-    FURNACE_ON :      out bit;
-    TEMP_DISPLAY :    out bit_vector(6 downto 0)
-    );
+  port (
+    CLK:              in std_logic;
+    NRESET:           in std_logic;
+    CURRENT_TEMP :    in std_logic_vector(6 downto 0);
+    DESIRED_TEMP :    in std_logic_vector(6 downto 0);
+    DISPLAY_SELECT :  in std_logic;
+    COOL :            in std_logic;
+    HEAT :            in std_logic;
+    FURNACE_HOT :     in std_logic;
+    AC_READY :        in std_logic;
+    AC_ON :           out std_logic;
+    FURNACE_ON :      out std_logic;
+    FAN_ON :          out std_logic;
+    TEMP_DISPLAY :    out std_logic_vector(6 downto 0)
+  );
 end component;
 -- internal signals with the same name
-signal CURRENT_TEMP, DESIRED_TEMP : bit_vector( 6 downto 0);
-signal CLK, RESET, DISPLAY_SELECT, COOL, HEAT : bit;
-signal TEMP_DISPLAY : bit_vector( 6 downto 0);
-signal AC_ON, FURNACE_ON : bit;
+signal CURRENT_TEMP, DESIRED_TEMP : std_logic_vector( 6 downto 0);
+signal NRESET, DISPLAY_SELECT, COOL, HEAT, FURNACE_HOT, AC_READY : std_logic;
+signal CLK : std_logic := '0';
+signal TEMP_DISPLAY : std_logic_vector( 6 downto 0);
+signal AC_ON, FURNACE_ON, FAN_ON : std_logic;
 
 begin
-
--- generate clock (concurrent statement, outside process)
-CLK <= not CLK after 6 ns;
 
 -- component under test, connect internal with external signals (same names)
 UUT: THERMO port map(  
     CLK => CLK,
-    RESET => RESET,
+    NRESET => NRESET,
     CURRENT_TEMP => CURRENT_TEMP,
     DESIRED_TEMP => DESIRED_TEMP,
     DISPLAY_SELECT => DISPLAY_SELECT,
     COOL => COOL,
     HEAT => HEAT,
+    FURNACE_HOT => FURNACE_HOT,
+    AC_READY => AC_READY,
     AC_ON => AC_ON,
     FURNACE_ON => FURNACE_ON,
+    FAN_ON => FAN_ON,
     TEMP_DISPLAY => TEMP_DISPLAY
     );
 
+-- generate clock (concurrent statement, outside process)
+CLK <= not CLK after 3 ns;
+
 process
     -- without selsivility list, it always enters and creates an infinite loop
-begin
-    RESET <= '0';
-    CURRENT_TEMP <= "0001111";
-    DESIRED_TEMP <= "1111111";
+  begin
+    NRESET <= '1';
+    CURRENT_TEMP <= "0000111";
+    DESIRED_TEMP <= "0001111";
     DISPLAY_SELECT <= '0';
     COOL <= '0';
     HEAT <= '0';
-    wait for 50 ns;
+    FURNACE_HOT <= '0';
+    AC_READY <= '0';
+    wait for 100 ns;
     DISPLAY_SELECT <= '1';
     HEAT <= '1';
-    wait for 50 ns;
-    DESIRED_TEMP <= "0000000";
-    wait for 50 ns;
+    wait for 100 ns;
+    FURNACE_HOT <= '1';
+    wait for 100 ns;
     HEAT <= '0';
+    wait for 100 ns;
+    FURNACE_HOT <= '0';
     COOL <= '1';
-    wait for 50 ns;
-    RESET <= '1';
-    wait for 50 ns;
+    wait for 100 ns;
+    DESIRED_TEMP <= "0000001";
+    wait for 100 ns;
+    AC_READY <= '1';
+    wait for 100 ns;
+    COOL <= '0';
+    wait for 100 ns;
+    AC_READY <= '0';
+    wait for 100 ns;    
     wait;
-end process;
+  end process;
 end TEST;
