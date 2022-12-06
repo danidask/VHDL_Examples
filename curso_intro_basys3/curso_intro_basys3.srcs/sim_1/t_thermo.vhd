@@ -1,6 +1,7 @@
 -- test filenames start with t_ 
 
 library IEEE;
+use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_1164.ALL;
 
 -- entity remains empty
@@ -23,7 +24,9 @@ component THERMO
     o_ac_on :           out std_logic;
     o_furnace_on :      out std_logic;
     o_fan_on :          out std_logic;
-    o_temp_display :    out std_logic_vector(6 downto 0)
+    o_temp_display :    out std_logic_vector(6 downto 0);
+    d_state :           out std_logic_vector(2 downto 0);
+    d_countdown :       out unsigned(5 downto 0)
   );
 end component;
 -- internal signals with the same name
@@ -32,8 +35,9 @@ signal i_current_temp, i_desired_temp : std_logic_vector( 6 downto 0);
 signal nreset, i_display_select, i_cool, i_heat, i_furnace_hot, i_ac_ready : std_logic;
 signal o_temp_display : std_logic_vector( 6 downto 0);
 signal o_ac_on, o_furnace_on, o_fan_on : std_logic;
-
-constant DELAY_TIME : time := 100 ns;
+signal d_state : std_logic_vector( 2 downto 0);
+signal d_countdown : unsigned( 5 downto 0);
+constant DELAY_TIME : time := 50 ns;
 
 
 begin
@@ -52,7 +56,9 @@ UUT: THERMO port map(
     o_ac_on => o_ac_on,
     o_furnace_on => o_furnace_on,
     o_fan_on => o_fan_on,
-    o_temp_display => o_temp_display
+    o_temp_display => o_temp_display,
+    d_state => d_state,
+    d_countdown => d_countdown
     );
 
 -- generate clock (concurrent statement, outside process)

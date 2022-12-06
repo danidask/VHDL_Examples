@@ -5,6 +5,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 -- type SIGNED is array (NATURAL range <>) of STD_LOGIC;
 
 
+-- Lab5
+-- How we will add a counter to our design and have it interact with the state machine?
+-- wait 20 clocks before allowing A/C to turn on again
+-- wait 10 clocks before allowing Furnace to turn on again
+
+
 entity THERMO is
   port (
     clk:                in std_logic;
@@ -19,7 +25,9 @@ entity THERMO is
     o_ac_on :           out std_logic;
     o_furnace_on :      out std_logic;
     o_fan_on :          out std_logic;
-    o_temp_display :    out std_logic_vector(6 downto 0)
+    o_temp_display :    out std_logic_vector(6 downto 0);
+    d_state :           out std_logic_vector(2 downto 0);  -- for debugging
+    d_countdown :       out unsigned(5 downto 0)
   );
 end THERMO;
 
@@ -27,11 +35,11 @@ architecture RTL of THERMO is
   -- signals for internal registers (flip-flops)
   signal i_current_temp_reg, i_desired_temp_reg, o_temp_display_reg : std_logic_vector(6 downto 0) := "0000000";
   signal i_display_select_reg, i_cool_reg, i_heat_reg, o_ac_on_reg, o_furnace_on_reg, o_fan_on_reg, i_furnace_hot_reg, i_ac_ready_reg : std_logic := '0';
+  signal countdown, next_countdown : unsigned(5 downto 0) := to_unsigned(0, 6);  -- from IEEE.NUMERIC_STD based on std_logic_vector
 
   type FSM_STATES is (IDLE_STATE, HEAT_ON_STATE, FURNACE_NOW_HOT_STATE, FURNACE_COOL_STATE, COOL_ON_STATE, AC_NOW_READY_STATE, AC_DONE_STATE);
   signal state, next_state : FSM_STATES := IDLE_STATE;
 
-  -- All processes sensitive only to clk and nreset, and will be trigguered in each rising edge or when reset is asserted
 begin
   -- Register all inputs into flip-flops
   process (clk, nreset)
@@ -84,14 +92,67 @@ begin
     end if;
   end process;
 
+  -- counter for both furnace and ac
+  next_countdown <= to_unsigned(10, 6) when (state = FURNACE_NOW_HOT_STATE)
+    else to_unsigned(20, 6) when (state = AC_NOW_READY_STATE)
+    else (countdown - 1) when (countdown > to_unsigned(0, 6))
+    else countdown;
+
+  process (clk, nreset)
+  begin
+    if nreset = '0' then
+      countdown <= to_unsigned(0, 6);
+    elsif clk'event and clk = '1' then
+      countdown <= next_countdown;
+      d_countdown <= next_countdown;
+    end if;
+  end process;
+
+  
   -- State machine
-  process (state, i_current_temp_reg, i_desired_temp_reg, i_cool_reg, i_heat_reg, i_furnace_hot_reg, i_ac_ready_reg)
+  process (next_state)
   begin
     case state is
       when IDLE_STATE =>
+        d_state <= "000";
         o_furnace_on_reg <= '0';
         o_ac_on_reg <= '0';
         o_fan_on_reg <= '0';
+      when HEAT_ON_STATE =>
+        d_state <= "100";
+        o_furnace_on_reg <= '1';
+        o_ac_on_reg <= '0';
+        o_fan_on_reg <= '0';
+      when FURNACE_NOW_HOT_STATE =>
+        d_state <= "101";
+        o_furnace_on_reg <= '1';
+        o_ac_on_reg <= '0';
+        o_fan_on_reg <= '1';
+      when FURNACE_COOL_STATE =>
+        d_state <= "001";
+        o_furnace_on_reg <= '0';
+        o_ac_on_reg <= '0';
+        o_fan_on_reg <= '1';
+      when COOL_ON_STATE =>
+        o_furnace_on_reg <= '0';
+        o_ac_on_reg <= '1';
+        o_fan_on_reg <= '0';
+      when AC_NOW_READY_STATE =>
+        o_furnace_on_reg <= '0';
+        o_ac_on_reg <= '1';
+        o_fan_on_reg <= '1';
+      when AC_DONE_STATE =>
+        o_furnace_on_reg <= '0';
+        o_ac_on_reg <= '0';
+        o_fan_on_reg <= '1';
+    end case;
+  end process;
+
+  -- State machine transitions
+  process (state, countdown, i_current_temp_reg, i_desired_temp_reg, i_cool_reg, i_heat_reg, i_furnace_hot_reg, i_ac_ready_reg)
+  begin
+    case state is
+      when IDLE_STATE =>
         if i_heat_reg = '1' and i_current_temp_reg < i_desired_temp_reg then
           next_state <= HEAT_ON_STATE;
         elsif i_cool_reg = '1' and i_current_temp_reg > i_desired_temp_reg then
@@ -100,55 +161,37 @@ begin
           next_state <= IDLE_STATE;
         end if;
       when HEAT_ON_STATE =>
-        o_furnace_on_reg <= '1';
-        o_ac_on_reg <= '0';
-        o_fan_on_reg <= '0';
         if i_furnace_hot_reg = '1' then
           next_state <= FURNACE_NOW_HOT_STATE;
         else
           next_state <= HEAT_ON_STATE;
         end if;
       when FURNACE_NOW_HOT_STATE =>
-        o_furnace_on_reg <= '1';
-        o_ac_on_reg <= '0';
-        o_fan_on_reg <= '1';
         if not (i_heat_reg = '1' and i_current_temp_reg < i_desired_temp_reg) then
           next_state <= FURNACE_COOL_STATE;
         else
           next_state <= FURNACE_NOW_HOT_STATE;
         end if;
       when FURNACE_COOL_STATE =>
-        o_furnace_on_reg <= '0';
-        o_ac_on_reg <= '0';
-        o_fan_on_reg <= '1';
-        if i_furnace_hot_reg = '0' then
+        if i_furnace_hot_reg = '0' and countdown = to_unsigned(0, 6) then
           next_state <= IDLE_STATE;
         else
           next_state <= FURNACE_COOL_STATE;
         end if;
       when COOL_ON_STATE =>
-        o_furnace_on_reg <= '0';
-        o_ac_on_reg <= '1';
-        o_fan_on_reg <= '0';
         if i_ac_ready_reg = '1' then
           next_state <= AC_NOW_READY_STATE;
         else
           next_state <= COOL_ON_STATE;
         end if;
       when AC_NOW_READY_STATE =>
-        o_furnace_on_reg <= '0';
-        o_ac_on_reg <= '1';
-        o_fan_on_reg <= '1';
         if not (i_cool_reg = '1' and i_current_temp_reg > i_desired_temp_reg) then
           next_state <= FURNACE_COOL_STATE;
         else
           next_state <= AC_NOW_READY_STATE;
         end if;
       when AC_DONE_STATE =>
-        o_furnace_on_reg <= '0';
-        o_ac_on_reg <= '0';
-        o_fan_on_reg <= '1';
-        if i_ac_ready_reg = '0' then
+        if i_ac_ready_reg = '0' and countdown = to_unsigned(0, 6) then
           next_state <= IDLE_STATE;
         else
           next_state <= AC_DONE_STATE;
@@ -157,6 +200,8 @@ begin
         next_state <= IDLE_STATE;
     end case;
   end process;
+
+
 
   process (clk, nreset)
   begin
