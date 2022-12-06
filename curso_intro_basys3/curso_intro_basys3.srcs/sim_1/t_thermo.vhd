@@ -11,79 +11,82 @@ end T_THERMO;
 architecture TEST of T_THERMO is
 component THERMO
   port (
-    CLK:              in std_logic;
-    NRESET:           in std_logic;
-    CURRENT_TEMP :    in std_logic_vector(6 downto 0);
-    DESIRED_TEMP :    in std_logic_vector(6 downto 0);
-    DISPLAY_SELECT :  in std_logic;
-    COOL :            in std_logic;
-    HEAT :            in std_logic;
-    FURNACE_HOT :     in std_logic;
-    AC_READY :        in std_logic;
-    AC_ON :           out std_logic;
-    FURNACE_ON :      out std_logic;
-    FAN_ON :          out std_logic;
-    TEMP_DISPLAY :    out std_logic_vector(6 downto 0)
+    clk:                in std_logic;
+    nreset:             in std_logic;
+    i_current_temp :    in std_logic_vector(6 downto 0);
+    i_desired_temp :    in std_logic_vector(6 downto 0);
+    i_display_select :  in std_logic;
+    i_cool :            in std_logic;
+    i_heat :            in std_logic;
+    i_furnace_hot :     in std_logic;
+    i_ac_ready :        in std_logic;
+    o_ac_on :           out std_logic;
+    o_furnace_on :      out std_logic;
+    o_fan_on :          out std_logic;
+    o_temp_display :    out std_logic_vector(6 downto 0)
   );
 end component;
 -- internal signals with the same name
-signal CURRENT_TEMP, DESIRED_TEMP : std_logic_vector( 6 downto 0);
-signal NRESET, DISPLAY_SELECT, COOL, HEAT, FURNACE_HOT, AC_READY : std_logic;
-signal CLK : std_logic := '0';
-signal TEMP_DISPLAY : std_logic_vector( 6 downto 0);
-signal AC_ON, FURNACE_ON, FAN_ON : std_logic;
+signal clk : std_logic := '0';
+signal i_current_temp, i_desired_temp : std_logic_vector( 6 downto 0);
+signal nreset, i_display_select, i_cool, i_heat, i_furnace_hot, i_ac_ready : std_logic;
+signal o_temp_display : std_logic_vector( 6 downto 0);
+signal o_ac_on, o_furnace_on, o_fan_on : std_logic;
+
+constant DELAY_TIME : time := 100 ns;
+
 
 begin
 
 -- component under test, connect internal with external signals (same names)
 UUT: THERMO port map(  
-    CLK => CLK,
-    NRESET => NRESET,
-    CURRENT_TEMP => CURRENT_TEMP,
-    DESIRED_TEMP => DESIRED_TEMP,
-    DISPLAY_SELECT => DISPLAY_SELECT,
-    COOL => COOL,
-    HEAT => HEAT,
-    FURNACE_HOT => FURNACE_HOT,
-    AC_READY => AC_READY,
-    AC_ON => AC_ON,
-    FURNACE_ON => FURNACE_ON,
-    FAN_ON => FAN_ON,
-    TEMP_DISPLAY => TEMP_DISPLAY
+    clk => clk,
+    nreset => nreset,
+    i_current_temp => i_current_temp,
+    i_desired_temp => i_desired_temp,
+    i_display_select => i_display_select,
+    i_cool => i_cool,
+    i_heat => i_heat,
+    i_furnace_hot => i_furnace_hot,
+    i_ac_ready => i_ac_ready,
+    o_ac_on => o_ac_on,
+    o_furnace_on => o_furnace_on,
+    o_fan_on => o_fan_on,
+    o_temp_display => o_temp_display
     );
 
 -- generate clock (concurrent statement, outside process)
-CLK <= not CLK after 3 ns;
+clk <= not clk after 3 ns;
 
 process
     -- without selsivility list, it always enters and creates an infinite loop
   begin
-    NRESET <= '1';
-    CURRENT_TEMP <= "0000111";
-    DESIRED_TEMP <= "0001111";
-    DISPLAY_SELECT <= '0';
-    COOL <= '0';
-    HEAT <= '0';
-    FURNACE_HOT <= '0';
-    AC_READY <= '0';
-    wait for 100 ns;
-    DISPLAY_SELECT <= '1';
-    HEAT <= '1';
-    wait for 100 ns;
-    FURNACE_HOT <= '1';
-    wait for 100 ns;
-    HEAT <= '0';
-    wait for 100 ns;
-    FURNACE_HOT <= '0';
-    COOL <= '1';
-    wait for 100 ns;
-    DESIRED_TEMP <= "0000001";
-    wait for 100 ns;
-    AC_READY <= '1';
-    wait for 100 ns;
-    COOL <= '0';
-    wait for 100 ns;
-    AC_READY <= '0';
+    nreset <= '1';
+    i_current_temp <= "0000111";
+    i_desired_temp <= "0001111";
+    i_display_select <= '0';
+    i_cool <= '0';
+    i_heat <= '0';
+    i_furnace_hot <= '0';
+    i_ac_ready <= '0';
+    wait for DELAY_TIME;
+    i_display_select <= '1';
+    i_heat <= '1';
+    wait for DELAY_TIME;
+    i_furnace_hot <= '1';
+    wait for DELAY_TIME;
+    i_heat <= '0';
+    wait for DELAY_TIME;
+    i_furnace_hot <= '0';
+    i_cool <= '1';
+    wait for DELAY_TIME;
+    i_desired_temp <= "0000001";
+    wait for DELAY_TIME;
+    i_ac_ready <= '1';
+    wait for DELAY_TIME;
+    i_cool <= '0';
+    wait for DELAY_TIME;
+    i_ac_ready <= '0';
     wait for 100 ns;    
     wait;
   end process;
