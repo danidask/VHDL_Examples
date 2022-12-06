@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="T_THERMO_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="T_THERMO" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,000.000 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="276"></NameColumnWidth>
+      <ValueColumnWidth column_width="120"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="27" />
+   <wvobject fp_name="/T_THERMO/UUT/nreset" type="logic">
+      <obj_property name="ElementShortName">nreset</obj_property>
+      <obj_property name="ObjectShortName">nreset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/countdown" type="array">
+      <obj_property name="ElementShortName">countdown[5:0]</obj_property>
+      <obj_property name="ObjectShortName">countdown[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/state" type="other">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/next_state" type="other">
+      <obj_property name="ElementShortName">next_state</obj_property>
+      <obj_property name="ObjectShortName">next_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_heat" type="logic">
+      <obj_property name="ElementShortName">i_heat</obj_property>
+      <obj_property name="ObjectShortName">i_heat</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_heat_reg" type="logic">
+      <obj_property name="ElementShortName">i_heat_reg</obj_property>
+      <obj_property name="ObjectShortName">i_heat_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_furnace_on" type="logic">
+      <obj_property name="ElementShortName">o_furnace_on</obj_property>
+      <obj_property name="ObjectShortName">o_furnace_on</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_furnace_on_reg" type="logic">
+      <obj_property name="ElementShortName">o_furnace_on_reg</obj_property>
+      <obj_property name="ObjectShortName">o_furnace_on_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_furnace_hot" type="logic">
+      <obj_property name="ElementShortName">i_furnace_hot</obj_property>
+      <obj_property name="ObjectShortName">i_furnace_hot</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_fan_on" type="logic">
+      <obj_property name="ElementShortName">o_fan_on</obj_property>
+      <obj_property name="ObjectShortName">o_fan_on</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_current_temp" type="array">
+      <obj_property name="ElementShortName">i_current_temp[6:0]</obj_property>
+      <obj_property name="ObjectShortName">i_current_temp[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_desired_temp" type="array">
+      <obj_property name="ElementShortName">i_desired_temp[6:0]</obj_property>
+      <obj_property name="ObjectShortName">i_desired_temp[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_display_select" type="logic">
+      <obj_property name="ElementShortName">i_display_select</obj_property>
+      <obj_property name="ObjectShortName">i_display_select</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_cool" type="logic">
+      <obj_property name="ElementShortName">i_cool</obj_property>
+      <obj_property name="ObjectShortName">i_cool</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_ac_ready" type="logic">
+      <obj_property name="ElementShortName">i_ac_ready</obj_property>
+      <obj_property name="ObjectShortName">i_ac_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_ac_on" type="logic">
+      <obj_property name="ElementShortName">o_ac_on</obj_property>
+      <obj_property name="ObjectShortName">o_ac_on</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_ac_on_reg" type="logic">
+      <obj_property name="ElementShortName">o_ac_on_reg</obj_property>
+      <obj_property name="ObjectShortName">o_ac_on_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_temp_display" type="array">
+      <obj_property name="ElementShortName">o_temp_display[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_temp_display[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_current_temp_reg" type="array">
+      <obj_property name="ElementShortName">i_current_temp_reg[6:0]</obj_property>
+      <obj_property name="ObjectShortName">i_current_temp_reg[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_desired_temp_reg" type="array">
+      <obj_property name="ElementShortName">i_desired_temp_reg[6:0]</obj_property>
+      <obj_property name="ObjectShortName">i_desired_temp_reg[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_temp_display_reg" type="array">
+      <obj_property name="ElementShortName">o_temp_display_reg[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_temp_display_reg[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_display_select_reg" type="logic">
+      <obj_property name="ElementShortName">i_display_select_reg</obj_property>
+      <obj_property name="ObjectShortName">i_display_select_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_cool_reg" type="logic">
+      <obj_property name="ElementShortName">i_cool_reg</obj_property>
+      <obj_property name="ObjectShortName">i_cool_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/o_fan_on_reg" type="logic">
+      <obj_property name="ElementShortName">o_fan_on_reg</obj_property>
+      <obj_property name="ObjectShortName">o_fan_on_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_furnace_hot_reg" type="logic">
+      <obj_property name="ElementShortName">i_furnace_hot_reg</obj_property>
+      <obj_property name="ObjectShortName">i_furnace_hot_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/T_THERMO/UUT/i_ac_ready_reg" type="logic">
+      <obj_property name="ElementShortName">i_ac_ready_reg</obj_property>
+      <obj_property name="ObjectShortName">i_ac_ready_reg</obj_property>
+   </wvobject>
+</wave_config>
